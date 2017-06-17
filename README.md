@@ -1,1 +1,0 @@
-# xor-neural-network
