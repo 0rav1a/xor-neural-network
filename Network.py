@@ -87,6 +87,28 @@ class Network:
             for neuron in self.layers[layer]:
                 print neuron.getWeights()
                 print neuron.getBias()
+    
+    def clone(self):
+        '''Devuelve una nueva red con mismas capas y neuronas que self
+        '''
+        newLayers = {layer: [] for layer in self.layers}
+            
+        for i in range(len(self.layers["input"])):
+            inputNeurons = []
+            weights = self.layers["input"][i].getWeights()
+            newLayers["input"].append(Neuron(inputNeurons, weights))
+
+        for i in range(len(self.layers["hidden"])):
+            inputNeurons = newLayers["input"]
+            weights = self.layers["hidden"][i].getWeights()
+            newLayers["hidden"].append(Neuron(inputNeurons, weights))
+        
+        for o in range(len(self.layers["output"])):
+            inputNeurons = newLayers["hidden"]
+            weights = self.layers["output"][o].getWeights()
+            newLayers["output"].append(Neuron(inputNeurons, weights))
+                
+        return Network(2, 1, newLayers)
 
     def setInputs(self, inputs):
         for i in range(self.nInputs):
@@ -123,50 +145,4 @@ def draw(self, inputs, target, l, i, w):
     #plt.plot(xs, ys)
     #plt.show()
     self.layers[l][i].setWeight(w, random.uniform(0,1))
-        
-        
-def clone(self):
-    '''Devuelve una nueva red con mismas capas y neuronas que self
-    '''
-    newLayers = {layer: [] for layer in self.layers}
-        
-    for i in range(len(self.layers["input"])):
-        inputNeurons = []
-        weights = self.layers["input"][i].getWeights()
-        newLayers["input"].append(Neuron(inputNeurons, weights))
-
-    for i in range(len(self.layers["hidden"])):
-        inputNeurons = newLayers["input"]
-        weights = self.layers["hidden"][i].getWeights()
-        newLayers["hidden"].append(Neuron(inputNeurons, weights))
-    
-    for o in range(len(self.layers["output"])):
-        inputNeurons = newLayers["hidden"]
-        weights = self.layers["output"][o].getWeights()
-        newLayers["output"].append(Neuron(inputNeurons, weights))
-            
-    return Network(2, 1, newLayers)
-    
-    
-#Incrementos para cada peso y bias de la red: (Gradient Descent)
-#[Las operaciones a continuación están hechas para una red específica (XOR), deberían cambiarse para una general]
-o = (output-target)*output*(1-output)                           #Bias output
-w5 = o*hidden[0]                                                #Peso de hidden1 a output
-w6 = o*hidden[1]                                                #Peso de hidden2 a output
-h1 = w5*(1-hidden[0])*self.layers["output"][0].getWeights()[0]  #Bias hidden1
-h2 = w6*(1-hidden[1])*self.layers["output"][0].getWeights()[1]  #Bias hidden2
-w1 = h1*inputs[0]                                               #Peso de input1 a hidden1
-w2 = h2*inputs[0]                                               #Peso de input1 a hidden2
-w3 = h1*inputs[1]                                               #Peso de input2 a hidden1
-w4 = h2*inputs[1]                                               #Peso de input2 a hidden2
-
-self.layers["output"][0].addBias(-o*LEARNING_RATE)
-self.layers["output"][0].addWeight(0, -w5*LEARNING_RATE)
-self.layers["output"][0].addWeight(1, -w6*LEARNING_RATE)
-self.layers["hidden"][0].addBias(-h1*LEARNING_RATE)
-self.layers["hidden"][1].addBias(-h2*LEARNING_RATE)
-self.layers["hidden"][0].addWeight(0, -w1*LEARNING_RATE)
-self.layers["hidden"][1].addWeight(0, -w2*LEARNING_RATE)
-self.layers["hidden"][0].addWeight(1, -w3*LEARNING_RATE)
-self.layers["hidden"][1].addWeight(1, -w4*LEARNING_RATE)
 """
