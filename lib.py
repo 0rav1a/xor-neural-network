@@ -1,5 +1,4 @@
 #coding:utf-8
-#commit?
 from math import e
 
 def sigmoid(x):
