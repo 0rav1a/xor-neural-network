@@ -1,8 +1,10 @@
 #coding:utf-8
 import random
 from Neuron import Neuron
+from lib import gauss
 
-LEARNING_RATE = 1
+LEARNING_RATE = 1 #Para gradient descent
+ERROR = 0.0001 #Margen de error de la red a partir del cual se considerará entrenada
 
 class Network:
     '''Red neuronal con una capa oculta (misma longitud que la capa input)
@@ -10,8 +12,8 @@ class Network:
     def __init__(self, nInputs = 1, nOutputs = 1, layers = None):
         '''
         nInputs: Número de entradas
-        nOutputs: Número de salida
-        layers: Conjunto ya creado de capas para la red
+        nOutputs: Número de salidas
+        layers: Conjunto ya creado de capas (se usa al clonar una red)
         '''
         self.layers = layers
         self.nInputs = nInputs
@@ -32,53 +34,91 @@ class Network:
                 hiddenLayer = self.layers["hidden"]
                 self.layers["output"].append(Neuron(hiddenLayer, []))
             
-    def train(self, inputs, target):
+    def backprop(self, tests):
         '''Dada una lista de inputs, modifica (gently) la red para que la salida se asemeje a target
         '''
-        self.setInputs(inputs)
-        outputs = [outputNeuron.getOutput() for outputNeuron in self.layers["output"]]
-        hidden = [hiddenNeuron.getOutput() for hiddenNeuron in self.layers["hidden"]]
+        while self.calcError(tests) > ERROR:
+        #for _ in range(20000):
+            for test in tests:
+                inputs = test[0]
+                target = test[1]
         
-        #Incrementos para cada peso y bias de la red: (Gradient Descent)
-        biasOutput = []
-        for o in range(self.nOutputs):
-            biasOutput.append((outputs[o]-target[o])*outputs[o]*(1-outputs[o]))
-        
-        weightsOutput = []
-        for h in range(self.nHidden):
-            weightsOutput.append([])
-            for o in range(self.nOutputs):
-                weightsOutput[h].append(biasOutput[o]*hidden[h])
-        
-        biasHidden = []
-        for h in range(self.nHidden):
-            biasHidden.append(0)
-            for o in range(self.nOutputs):
-                biasHidden[-1] += self.layers["output"][o].getWeights()[h]*weightsOutput[h][o]*(1-hidden[h])
-        
-        weightsHidden = []
-        for i in range(self.nInputs):
-            weightsHidden.append([])
-            for h in range(self.nHidden):
-                weightsHidden[i].append(biasHidden[h]*inputs[i])
+                #Se calcula la salida de cada neurona
+                self.setInputs(inputs)
+                outputs = [outputNeuron.getOutput() for outputNeuron in self.layers["output"]]
+                hidden = [hiddenNeuron.getOutput() for hiddenNeuron in self.layers["hidden"]]
                 
-        for o in range(self.nOutputs):
-            self.layers["output"][o].addBias(-biasOutput[o]*LEARNING_RATE)
-            for h in range(self.nHidden):
-                self.layers["output"][o].addWeight(h, -weightsOutput[h][o]*LEARNING_RATE)
+                #Se calculan los incrementos para cada peso y bias: (Gradient Descent)
+                biasOutput = []
+                for o in range(self.nOutputs):
+                    biasOutput.append((outputs[o]-target[o])*outputs[o]*(1-outputs[o]))
                 
-        for h in range(self.nHidden):
-            self.layers["hidden"][h].addBias(-biasHidden[h]*LEARNING_RATE)
-            for i in range(self.nInputs):
-                self.layers["hidden"][h].addWeight(i, -weightsHidden[i][h]*LEARNING_RATE)
+                weightsOutput = []
+                for h in range(self.nHidden):
+                    weightsOutput.append([])
+                    for o in range(self.nOutputs):
+                        weightsOutput[h].append(biasOutput[o]*hidden[h])
+                
+                biasHidden = []
+                for h in range(self.nHidden):
+                    biasHidden.append(0)
+                    for o in range(self.nOutputs):
+                        biasHidden[-1] += self.layers["output"][o].getWeights()[h]*weightsOutput[h][o]*(1-hidden[h])
+                
+                weightsHidden = []
+                for i in range(self.nInputs):
+                    weightsHidden.append([])
+                    for h in range(self.nHidden):
+                        weightsHidden[i].append(biasHidden[h]*inputs[i])
+                
+                #Se aplican los incrementos a los pesos y bias:        
+                for o in range(self.nOutputs):
+                    self.layers["output"][o].addBias(-biasOutput[o]*LEARNING_RATE)
+                    for h in range(self.nHidden):
+                        self.layers["output"][o].addWeight(h, -weightsOutput[h][o]*LEARNING_RATE)
+                        
+                for h in range(self.nHidden):
+                    self.layers["hidden"][h].addBias(-biasHidden[h]*LEARNING_RATE)
+                    for i in range(self.nInputs):
+                        self.layers["hidden"][h].addWeight(i, -weightsHidden[i][h]*LEARNING_RATE)
+                        
+    def calcError(self, tests):
+        '''Calcula el error de la red probando los tests
+        '''
+        error = 0.0
+        for input, target in tests:
+            output = self.getOutput(input)
+            for i in range(self.nOutputs):
+                error += 1-gauss(output[i], target[i])
+            
+            print output,
         
-    def getOutput(self, inputs):
+        error /= len(tests)*self.nOutputs
+
+        print "\nError:\t" + str(error)
+        return error
+    
+    def clone(self):
+        '''Devuelve una nueva red idéntica a self
         '''
-        Dada una lista de inputs, devuelve la lista de outputs de la red
-        La longitud de inputs debe ser la misma que la de inputLayer (nInputs)
-        '''
-        self.setInputs(inputs)
-        return [outputNeuron.getOutput() for outputNeuron in self.layers["output"]]
+        newLayers = {layer: [] for layer in self.layers}
+            
+        for inputNeuron in self.layers["input"]:
+            inputNeurons = []
+            weights = inputNeuron.getWeights()
+            newLayers["input"].append(Neuron(inputNeurons, weights))
+
+        for hiddenNeuron in self.layers["hidden"]:
+            inputNeurons = newLayers["input"]
+            weights = hiddenNeuron.getWeights()
+            newLayers["hidden"].append(Neuron(inputNeurons, weights))
+        
+        for outputNeuron in self.layers["output"]:
+            inputNeurons = newLayers["hidden"]
+            weights = outputNeuron.getWeights()
+            newLayers["output"].append(Neuron(inputNeurons, weights))
+                
+        return Network(self.nInputs, self.nOutputs, newLayers)
 
     def show(self):
         '''Imprime los valores de pesos y bias de la red (para debugging)
@@ -87,28 +127,14 @@ class Network:
             for neuron in self.layers[layer]:
                 print neuron.getWeights()
                 print neuron.getBias()
-    
-    def clone(self):
-        '''Devuelve una nueva red con mismas capas y neuronas que self
-        '''
-        newLayers = {layer: [] for layer in self.layers}
-            
-        for i in range(len(self.layers["input"])):
-            inputNeurons = []
-            weights = self.layers["input"][i].getWeights()
-            newLayers["input"].append(Neuron(inputNeurons, weights))
-
-        for i in range(len(self.layers["hidden"])):
-            inputNeurons = newLayers["input"]
-            weights = self.layers["hidden"][i].getWeights()
-            newLayers["hidden"].append(Neuron(inputNeurons, weights))
-        
-        for o in range(len(self.layers["output"])):
-            inputNeurons = newLayers["hidden"]
-            weights = self.layers["output"][o].getWeights()
-            newLayers["output"].append(Neuron(inputNeurons, weights))
                 
-        return Network(2, 1, newLayers)
+    def getOutput(self, inputs):
+        '''
+        Dada una lista de inputs, devuelve la lista de outputs de la red
+        La longitud de inputs debe ser la misma que la de inputLayer (nInputs)
+        '''
+        self.setInputs(inputs)
+        return [outputNeuron.getOutput() for outputNeuron in self.layers["output"]]
 
     def setInputs(self, inputs):
         for i in range(self.nInputs):
