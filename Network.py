@@ -33,9 +33,19 @@ class Network:
             for _ in range(nOutputs): #Capa output
                 hiddenLayer = self.layers["hidden"]
                 self.layers["output"].append(Neuron(hiddenLayer, []))
+    
+    def setInputs(self, inputs):
+        for i in range(self.nInputs):
+            self.layers["input"][i].setBias(inputs[i])
+                
+    def getOutput(self, inputs):
+        '''Dada una lista de inputs, devuelve la lista de outputs de la red
+        '''
+        self.setInputs(inputs)
+        return [outputNeuron.getOutput() for outputNeuron in self.layers["output"]]
             
     def backprop(self, tests):
-        '''Dada una lista de inputs, modifica (gently) la red para que la salida se asemeje a target
+        '''Dada una lista de inputs, modifica (gently) la red para que la salida se asemeje a la esperada
         '''
         while self.calcError(tests) > ERROR:
         #for _ in range(20000):
@@ -85,18 +95,18 @@ class Network:
     def calcError(self, tests):
         '''Calcula el error de la red probando los tests
         '''
-        error = 0.0
+        self.error = 0.0
         for input, target in tests:
             output = self.getOutput(input)
             for i in range(self.nOutputs):
-                error += 1-gauss(output[i], target[i])
+                self.error += 1-gauss(output[i], target[i])
             
             print output,
         
-        error /= len(tests)*self.nOutputs
+        self.error /= len(tests)*self.nOutputs
 
-        print "\nError:\t" + str(error)
-        return error
+        print "\nError:\t" + str(self.error)
+        return self.error
     
     def clone(self):
         '''Devuelve una nueva red idéntica a self
@@ -119,6 +129,16 @@ class Network:
             newLayers["output"].append(Neuron(inputNeurons, weights))
                 
         return Network(self.nInputs, self.nOutputs, newLayers)
+        
+    def mutate(self, prob):
+        '''Los pesos y bias de la red tienen la posibilidad de mutar
+        '''
+        for layer in self.layers:
+            for neuron in self.layers[layer]:
+                for w in range(len(neuron.getWeights())):
+                    if random.uniform(0,1) < prob:
+                        neuron.setWeight(w, random.uniform(-1,1))
+                if random.uniform(0,1) < prob: neuron.setBias(random.uniform(-1,1))
 
     def show(self):
         '''Imprime los valores de pesos y bias de la red (para debugging)
@@ -128,47 +148,4 @@ class Network:
                 print neuron.getWeights()
                 print neuron.getBias()
                 
-    def getOutput(self, inputs):
-        '''
-        Dada una lista de inputs, devuelve la lista de outputs de la red
-        La longitud de inputs debe ser la misma que la de inputLayer (nInputs)
-        '''
-        self.setInputs(inputs)
-        return [outputNeuron.getOutput() for outputNeuron in self.layers["output"]]
-
-    def setInputs(self, inputs):
-        for i in range(self.nInputs):
-            self.layers["input"][i].setBias(inputs[i])
-
-
-
-
-
-"""
-import matplotlib.pyplot as plt
-def draw(self, inputs, target, l, i, w):
-    '''
-    Dibuja un gráfico en el que se muestra el error de la red neuronal en función de uno de los pesos
-    inputs: Lista de inputs de la red neuronal
-    target: Lista de outputs esperados, en base a los cuales se calculará el error total
-    l: Capa en la que está el peso que se quiere optimizar ["hidden", "output"]
-    i: Índice de la neurona dentro de la capa
-    w: Índice del peso dentro de la neurona
-    '''
-    
-    xs = [x/1000.0 for x in range(1000)]        #Se define el dominio de la función (pesos que se probarán)
-    ys = []
-    for x in xs:                                #Se recorren todos los valores del dominio
-        self.layers[l][i].setWeight(w, x)       #Se establece el peso correspondiente en la red neuronal
-        outputs = self.getOutput(inputs)        #Se calcula la salida con el peso establecido
-        y = 0.0
-        for o in range(len(outputs)):           #Se calcula el error en base a la salida obtenida y la esperada
-            y += (target[o]-outputs[o])**2
-            
-        ys.append(y/2)
-    
-    print xs[ys.index(min(ys))]
-    #plt.plot(xs, ys)
-    #plt.show()
-    self.layers[l][i].setWeight(w, random.uniform(0,1))
-"""
+    def getError(self): return self.error
