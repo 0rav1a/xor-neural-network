@@ -22,9 +22,5 @@ for _ in range(1000):
     n2 = random.uniform(0, 0.5)
     test.append(([n1,n2],[n1+n2]))
     
-net = Network(2, 1)
-<<<<<<< HEAD
+net = Network([2,2,1])
 net.backprop(test)
-=======
-net.backprop(test)
->>>>>>> 5127112ee5dcf8132bc320e0819ef7a0f4bd7ed4

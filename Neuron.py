@@ -8,47 +8,67 @@ class Neuron:
     Cada entrada tiene asignada un peso, y uno extra para el bias
     Si no hay entradas a la neurona, su salida será el bias
     '''
-    def __init__(self, inputNeurons = [], weights = []):
+    def __init__(self, prevLayer, nextLayer):
         '''
-        inputNeurons: Lista de neuronas de entrada
-        weights: Lista de pesos de cada neurona de entrada (misma longitud que inputNeurons)
+        prevLayer: Lista de neuronas de la capa anterior (lista vacía si la neurona pertenece a la capa input)
+        nextLayer: Lista de neuronas de la capa siguiente (lista vacía si la neurona pertenece a la capa output)
         '''
-        self.inputNeurons = inputNeurons
-        self.weights = weights
-        if (not weights):
-            for neuron in inputNeurons:
-                #self.weights.append(random.uniform(-1,1))
-                self.weights[neuron] = random.uniform(-1,1)
-            
+        self.prevLayer = prevLayer
+        self.nextLayer = nextLayer
         self.bias = random.uniform(-1,1)
         
+        self.weights = {} #Diccionario de pesos, accesibles por la neurona de la capa anterior a la que están conectados
+        for neuron in prevLayer:
+            self.weights[neuron] = random.uniform(-1,1)
+            
     def getOutput(self):
-        if not self.inputNeurons: return self.bias
+        if not self.prevLayer: return self.bias
         
-        out = 0
-        for i in range(len(self.inputNeurons)):
-            out += self.inputNeurons[i].getOutput() * self.weights[i]
+        output = 0
+        for neuron in self.prevLayer:
+            output += neuron.getOutput() * self.weights[neuron]
         
-        out += self.bias
-        out = sigmoid(out)
-        return out
+        output += self.bias
+        output = sigmoid(output)
+        return output
         
-    def getNeuronError(self, nextLayer = [], target = 0):
-        '''Calcula la derivada del error total de la red respecto de la salida de la neurona
+    def getNeuronError(self, targets):
         '''
-        if target: #Si se proporciona una salida esperada, la neurona es de salida
-            return self.getOutput - target
+        Calcula la derivada del error total de la red respecto de la salida de esta neurona
+        targets: Diccionario de salidas esperadas de la red, accesibles por la neurona de salida
+        '''
+        if not self.nextLayer: return self.getOutput() - targets[self]
         
-        if nextLayer: #Si se proporciona la siguiente capa, la neurona es hidden
-            error = 0
-            for neuron in nextLayer:
-                error += neuron.getBiasError()
-            return error
+        error = 0
+        for neuron in self.nextLayer:
+            error += neuron.getBiasError(targets) * neuron.getWeights()[self]
+        return error
+            
+    def getBiasError(self, targets):
+        '''
+        Calcula la derivada del error total de la red respecto del bias
+        targets: Diccionario de salidas esperadas de la red, accesibles por la neurona de salida
+        '''
+        return self.getNeuronError(targets) * self.getOutput() * (1-self.getOutput())
         
+    def getWeightError(self, targets, inputNeuron):
+        '''
+        Calcula la derivada del error total de la red respecto de un peso de la neurona
+        targets: Diccionario de salidas esperadas de la red, accesibles por la neurona de salida
+        inputNeuron: Neurona a la que está conectada el peso del que se quiere saber el error
+        '''
+        return self.getBiasError(targets) * inputNeuron.getOutput()
+        
+    def update(self, targets, lr):
+        '''Actualiza (gently) los pesos y bias de la neurona para que la salida de la red se asemeje a targets
+        '''
+        self.bias -= self.getBiasError(targets) * lr
+        for neuron in self.prevLayer:
+            self.weights[neuron] -= self.getWeightError(targets, neuron) * lr
         
     def setBias(self, b): self.bias = b
-    def addBias(self, b): self.bias += b
+    def addBiasError(self, b): self.bias += b
     def getBias(self): return self.bias
     def setWeight(self, i, w): self.weights[i] = w
     def addWeight(self, i, w): self.weights[i] += w
-    def getWeights(self): return list(self.weights)
+    def getWeights(self): return dict(self.weights)
