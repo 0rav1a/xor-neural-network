@@ -1,10 +1,10 @@
 #coding:utf-8
 import random
 from Neuron import Neuron
-from lib import gauss
+from lib import gauss, sigmoid
 
 LEARNING_RATE = 1 #Para gradient descent
-ERROR = 0.0001 #Margen de error de la red a partir del cual se considerará entrenada
+ERROR = 0.015 #Margen de error de la red a partir del cual se considerará entrenada
 
 class Network:
     '''Red neuronal con una capa oculta (misma longitud que la capa input)
@@ -47,8 +47,8 @@ class Network:
     def backprop(self, tests):
         '''Dada una lista de inputs, modifica (gently) la red para que la salida se asemeje a la esperada
         '''
+        lr = LEARNING_RATE
         while self.calcError(tests) > ERROR:
-        #for _ in range(20000):
             for test in tests:
                 inputs = test[0]
                 target = test[1]
@@ -83,14 +83,14 @@ class Network:
                 
                 #Se aplican los incrementos a los pesos y bias:        
                 for o in range(self.nOutputs):
-                    self.layers["output"][o].addBias(-biasOutput[o]*LEARNING_RATE)
+                    self.layers["output"][o].addBias(-biasOutput[o]*lr)
                     for h in range(self.nHidden):
-                        self.layers["output"][o].addWeight(h, -weightsOutput[h][o]*LEARNING_RATE)
+                        self.layers["output"][o].addWeight(h, -weightsOutput[h][o]*lr)
                         
                 for h in range(self.nHidden):
-                    self.layers["hidden"][h].addBias(-biasHidden[h]*LEARNING_RATE)
+                    self.layers["hidden"][h].addBias(-biasHidden[h]*lr)
                     for i in range(self.nInputs):
-                        self.layers["hidden"][h].addWeight(i, -weightsHidden[i][h]*LEARNING_RATE)
+                        self.layers["hidden"][h].addWeight(i, -weightsHidden[i][h]*lr)
                         
     def calcError(self, tests):
         '''Calcula el error de la red probando los tests
@@ -99,7 +99,7 @@ class Network:
         for input, target in tests:
             output = self.getOutput(input)
             for i in range(self.nOutputs):
-                self.error += 1-gauss(output[i], target[i])
+                self.error += abs(output[i] - target[i]) #1-gauss(output[i], target[i])
             
             print output,
         
@@ -107,45 +107,3 @@ class Network:
 
         print "\nError:\t" + str(self.error)
         return self.error
-    
-    def clone(self):
-        '''Devuelve una nueva red idéntica a self
-        '''
-        newLayers = {layer: [] for layer in self.layers}
-            
-        for inputNeuron in self.layers["input"]:
-            inputNeurons = []
-            weights = inputNeuron.getWeights()
-            newLayers["input"].append(Neuron(inputNeurons, weights))
-
-        for hiddenNeuron in self.layers["hidden"]:
-            inputNeurons = newLayers["input"]
-            weights = hiddenNeuron.getWeights()
-            newLayers["hidden"].append(Neuron(inputNeurons, weights))
-        
-        for outputNeuron in self.layers["output"]:
-            inputNeurons = newLayers["hidden"]
-            weights = outputNeuron.getWeights()
-            newLayers["output"].append(Neuron(inputNeurons, weights))
-                
-        return Network(self.nInputs, self.nOutputs, newLayers)
-        
-    def mutate(self, prob):
-        '''Los pesos y bias de la red tienen la posibilidad de mutar
-        '''
-        for layer in self.layers:
-            for neuron in self.layers[layer]:
-                for w in range(len(neuron.getWeights())):
-                    if random.uniform(0,1) < prob:
-                        neuron.setWeight(w, random.uniform(-1,1))
-                if random.uniform(0,1) < prob: neuron.setBias(random.uniform(-1,1))
-
-    def show(self):
-        '''Imprime los valores de pesos y bias de la red (para debugging)
-        '''
-        for layer in self.layers:
-            for neuron in self.layers[layer]:
-                print neuron.getWeights()
-                print neuron.getBias()
-                
-    def getError(self): return self.error
