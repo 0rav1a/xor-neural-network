@@ -5,8 +5,8 @@ from lib import sigmoid
 class Neuron:
     '''
     Neurona con varias entradas y una salida
-    Cada entrada tiene asignada un peso, y uno extra para bias
-    Si no hay entradas a la neurona, su salida será "bias"
+    Cada entrada tiene asignada un peso, y uno extra para el bias
+    Si no hay entradas a la neurona, su salida será el bias
     '''
     def __init__(self, inputNeurons = [], weights = []):
         '''
@@ -16,14 +16,13 @@ class Neuron:
         self.inputNeurons = inputNeurons
         self.weights = weights
         if (not weights):
-            for _ in inputNeurons:
-                self.weights.append(random.uniform(-1,1))
+            for neuron in inputNeurons:
+                #self.weights.append(random.uniform(-1,1))
+                self.weights[neuron] = random.uniform(-1,1)
             
         self.bias = random.uniform(-1,1)
         
     def getOutput(self):
-        '''Genera la salida de la neurona. Para ello se llama a getOutput de cada neurona de entrada
-        '''
         if not self.inputNeurons: return self.bias
         
         out = 0
@@ -33,6 +32,19 @@ class Neuron:
         out += self.bias
         out = sigmoid(out)
         return out
+        
+    def getNeuronError(self, nextLayer = [], target = 0):
+        '''Calcula la derivada del error total de la red respecto de la salida de la neurona
+        '''
+        if target: #Si se proporciona una salida esperada, la neurona es de salida
+            return self.getOutput - target
+        
+        if nextLayer: #Si se proporciona la siguiente capa, la neurona es hidden
+            error = 0
+            for neuron in nextLayer:
+                error += neuron.getBiasError()
+            return error
+        
         
     def setBias(self, b): self.bias = b
     def addBias(self, b): self.bias += b
