@@ -18,9 +18,19 @@ CONT = (([0,0,0],[0,0,1]),
 
 test = []
 for _ in range(1000):
-    n1 = random.uniform(0, 0.5)
-    n2 = random.uniform(0, 0.5)
-    test.append(([n1,n2],[n1+n2]))
+    n1 = random.uniform(0, 1)
+    n2 = random.uniform(0, 1)
+    test.append(([n1,n2],[n1*n2]))
     
-net = Network([2,2,1])
-net.backprop(test)
+net = Network([3,3,3])
+net.backprop(CONT)
+
+'''
+net.setInputs([0.428291, 0.859212])
+net.calcOutputs()
+print net.getOutputs()
+
+net.setInputs([1, 0.628231])
+net.calcOutputs()
+print net.getOutputs([1, 0.628231])
+'''

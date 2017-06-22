@@ -21,54 +21,46 @@ class Neuron:
         for neuron in prevLayer:
             self.weights[neuron] = random.uniform(-1,1)
             
-    def getOutput(self):
-        if not self.prevLayer: return self.bias
-        
-        output = 0
-        for neuron in self.prevLayer:
-            output += neuron.getOutput() * self.weights[neuron]
-        
-        output += self.bias
-        output = sigmoid(output)
-        return output
-        
-    def getNeuronError(self, targets):
-        '''
-        Calcula la derivada del error total de la red respecto de la salida de esta neurona
-        targets: Diccionario de salidas esperadas de la red, accesibles por la neurona de salida
-        '''
-        if not self.nextLayer: return self.getOutput() - targets[self]
-        
-        error = 0
-        for neuron in self.nextLayer:
-            error += neuron.getBiasError(targets) * neuron.getWeights()[self]
-        return error
+    def calcOutput(self):
+        if not self.prevLayer: self.output = self.bias
+        else:
+            self.output = 0
+            for neuron in self.prevLayer:
+                self.output += neuron.getOutput() * self.weights[neuron]
             
-    def getBiasError(self, targets):
-        '''
-        Calcula la derivada del error total de la red respecto del bias
-        targets: Diccionario de salidas esperadas de la red, accesibles por la neurona de salida
-        '''
-        return self.getNeuronError(targets) * self.getOutput() * (1-self.getOutput())
+            self.output += self.bias
+            self.output = sigmoid(self.output)
         
-    def getWeightError(self, targets, inputNeuron):
+    def calcNeuronError(self):
+        '''Calcula la derivada del error total de la red respecto de la salida de esta neurona
         '''
-        Calcula la derivada del error total de la red respecto de un peso de la neurona
-        targets: Diccionario de salidas esperadas de la red, accesibles por la neurona de salida
-        inputNeuron: Neurona a la que está conectada el peso del que se quiere saber el error
+        if not self.nextLayer: self.error = self.output - self.target
+        else:
+            self.error = 0
+            for neuron in self.nextLayer:
+                self.error += neuron.getBiasError() * neuron.getWeights()[self]
+            
+    def calcBiasError(self):
+        '''Calcula la derivada del error total de la red respecto del bias
         '''
-        return self.getBiasError(targets) * inputNeuron.getOutput()
+        self.biasError = self.error * self.output * (1-self.output)
         
-    def update(self, targets, lr):
-        '''Actualiza (gently) los pesos y bias de la neurona para que la salida de la red se asemeje a targets
+    def calcWeightsErrors(self):
+        '''Calcula la derivada del error total de la red respecto de los pesos de la neurona
         '''
-        self.bias -= self.getBiasError(targets) * lr
+        self.weightsErrors = {neuron: self.biasError * neuron.getOutput() for neuron in self.prevLayer}
+        
+    def update(self, lr):
+        '''Actualiza los pesos y bias de la neurona según los errores ya calculados
+        '''
+        self.bias -= self.biasError * lr
         for neuron in self.prevLayer:
-            self.weights[neuron] -= self.getWeightError(targets, neuron) * lr
+            self.weights[neuron] -= self.weightsErrors[neuron] * lr
         
     def setBias(self, b): self.bias = b
-    def addBiasError(self, b): self.bias += b
-    def getBias(self): return self.bias
-    def setWeight(self, i, w): self.weights[i] = w
-    def addWeight(self, i, w): self.weights[i] += w
+    def setTarget(self, t): self.target = t
     def getWeights(self): return dict(self.weights)
+    def getOutput(self): return self.output
+    def getNeuronError(self): return self.error
+    def getBiasError(self): return self.biasError
+    def getWeightsErrors(self): return self.weightsErrors
