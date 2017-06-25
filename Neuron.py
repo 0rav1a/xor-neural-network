@@ -1,12 +1,12 @@
 #coding:utf-8
 import random
-from lib import sigmoid
+from math import e
 
 class Neuron:
     '''
-    Neurona con varias entradas, un peso asignado a cada una, y una salida
+    Neurona con varias neuronas de entrada, un peso asignado a cada una, y una salida
     Una de las entradas será bias (1 constante)
-    Si la neurona está en la capa input no tendrá entradas
+    Si la neurona está en la capa input no tendrá niguna entrada
     '''
     def __init__(self, prevLayer, nextLayer):
         '''
@@ -15,11 +15,8 @@ class Neuron:
         '''
         self.prevLayer = prevLayer
         self.nextLayer = nextLayer
+        self.weights = {neuron: random.uniform(-1,1) for neuron in prevLayer} #Diccionario de pesos, accesibles por la neurona de entrada
         
-        self.weights = {} #Diccionario de pesos, accesibles por la neurona de la capa anterior a la que están conectados
-        for neuron in prevLayer:
-            self.weights[neuron] = random.uniform(-1,1)
-            
     def calcOutput(self):
         if self.prevLayer:
             self.output = 0
@@ -53,3 +50,5 @@ class Neuron:
     def getWeights(self): return dict(self.weights)
     def getOutput(self): return self.output
     def getError(self): return self.error
+
+def sigmoid(x): return 1/(1+e**-x)
