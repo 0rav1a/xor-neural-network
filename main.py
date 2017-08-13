@@ -1,6 +1,6 @@
 #coding:utf-8
 import random
-from Network import Network
+from EfNetwork import EfNetwork
 
 XOR = [([0,0],[0]),
        ([0,1],[1]),
@@ -22,7 +22,7 @@ for _ in range(1000):
     n2 = random.uniform(0, 1)
     test.append(([n1,n2],[n1*n2]))
     
-net = Network([2,2,1])
+net = EfNetwork([2,2,1])
 net.backprop(XOR)
 
 '''
