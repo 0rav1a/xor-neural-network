@@ -15,7 +15,7 @@ class Neuron:
         '''
         self.prevLayer = prevLayer
         self.nextLayer = nextLayer
-        self.weights = {neuron: random.uniform(-1,1) for neuron in prevLayer} #Diccionario de pesos, accesibles por la neurona de entrada
+        self.weights = {neuron: random.uniform(-1, 1) for neuron in prevLayer} #Diccionario de pesos, accesibles por la neurona de entrada
         
     def calcOutput(self):
         if self.prevLayer:
@@ -47,8 +47,9 @@ class Neuron:
         
     def setOutput(self, o): self.output = o
     def setTarget(self, t): self.target = t
-    def getWeights(self): return dict(self.weights)
     def getOutput(self): return self.output
+    def getTarget(self): return self.target
+    def getWeights(self): return dict(self.weights)
     def getError(self): return self.error
 
 def sigmoid(x): return 1/(1+e**-x)
