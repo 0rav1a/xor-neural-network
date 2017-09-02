@@ -1,29 +1,45 @@
 #coding:utf-8
 import random
-from EfNetwork import EfNetwork
+import numpy as np
+from NPNetwork import NPNetwork
 
-XOR = [([0,0],[0]),
-       ([0,1],[1]),
-       ([1,0],[1]),
-       ([1,1],[0])]
-         
-CONT = [([0,0,0],[0,0,1]),
-        ([0,0,1],[0,1,0]),
-        ([0,1,0],[0,1,1]),
-        ([0,1,1],[1,0,0]),
-        ([1,0,0],[1,0,1]),
-        ([1,0,1],[1,1,0]),
-        ([1,1,0],[1,1,1]),
-        ([1,1,1],[0,0,0])]
+XOR = np.array([[[0,0],[0]],
+                 [[0,1],[1]],
+                 [[1,0],[1]],
+                 [[1,1],[0]]])
+
+CONT = np.array([[[0,0,0],[0,0,1]],
+                 [[0,0,1],[0,1,0]],
+                 [[0,1,0],[0,1,1]],
+                 [[0,1,1],[1,0,0]],
+                 [[1,0,0],[1,0,1]],
+                 [[1,0,1],[1,1,0]],
+                 [[1,1,0],[1,1,1]],
+                 [[1,1,1],[0,0,0]]])
 
 test = []
 for _ in range(1000):
     n1 = random.uniform(0, 1)
     n2 = random.uniform(0, 1)
     test.append(([n1,n2],[n1*n2]))
-    
-net = EfNetwork([2,2,1])
-net.backprop(XOR)
+
+net = NPNetwork([2,8100,8100,1])
+net.backprop(test)
+
+'''
+net.setInputs([0, 0])
+net.calcOutputs()
+print net.getOutputs()
+net.setInputs([0, 1])
+net.calcOutputs()
+print net.getOutputs()
+net.setInputs([1, 0])
+net.calcOutputs()
+print net.getOutputs()
+net.setInputs([1, 1])
+net.calcOutputs()
+print net.getOutputs()
+'''
 
 '''
 net.setInputs([0.428291, 0.859212])
