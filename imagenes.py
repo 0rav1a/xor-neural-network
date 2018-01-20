@@ -12,7 +12,7 @@ test = []
 for _ in range(1000):
     img = []
     for _ in range(784):
-        img.append(ord(imagenes.read(1)))
+        img.append(ord(imagenes.read(1))/255.0)
     lbl = [0,0,0,0,0,0,0,0,0,0]
     lbl[ord(labels.read(1))] = 1
 
@@ -20,7 +20,7 @@ for _ in range(1000):
 
 test = np.array(test)
 
-net = NPNetwork([784,100,10])
+net = NPNetwork([784,30,10])
 net.backprop(test)
 
 for inputs, targets in test:

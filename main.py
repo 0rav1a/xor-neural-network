@@ -23,8 +23,11 @@ for _ in range(1000):
     n2 = random.uniform(0, 1)
     test.append(([n1,n2],[n1*n2]))
 
-net = NPNetwork([2,8100,8100,1])
+net = NPNetwork([2,2,1])
 net.backprop(test)
+net.setInputs([0.5124, 0.1925])
+net.calcOutputs()
+print net.getOutputs()
 
 '''
 net.setInputs([0, 0])
