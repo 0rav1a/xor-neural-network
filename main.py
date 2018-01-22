@@ -1,7 +1,7 @@
 #coding:utf-8
 import random
 import numpy as np
-from NPNetwork import NPNetwork
+from Network import Network
 
 XOR = np.array([[[0,0],[0]],
                  [[0,1],[1]],
@@ -18,12 +18,12 @@ CONT = np.array([[[0,0,0],[0,0,1]],
                  [[1,1,1],[0,0,0]]])
 
 test = []
-for _ in range(1000):
+for _ in range(10000):
     n1 = random.uniform(0, 1)
     n2 = random.uniform(0, 1)
     test.append(([n1,n2],[n1*n2]))
 
-net = NPNetwork([2,2,1])
+net = Network([2,2,1])
 net.backprop(test)
 net.setInputs([0.5124, 0.1925])
 net.calcOutputs()
