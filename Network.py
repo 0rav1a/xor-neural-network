@@ -2,8 +2,9 @@
 import numpy as np
 import random
 
-LEARNING_RATE = .005 #Para gradient descent
-MIN_ERROR = .04 #Margen de error de la red a partir del cual se considerará entrenada
+LEARNING_RATE = .5 #Para gradient descent
+MIN_ERROR = .05 #Margen de error de la red a partir del cual se considerará entrenada
+BATCH_SIZE = 10 #Tamaño del bloque de datos que usará la red para modificar los pesos
 
 class Network:
     def __init__(self, nNeurons):
@@ -30,25 +31,26 @@ class Network:
         cost = 1.0 #Valor de la función de coste para los pesos y bias actuales
 
         while cost > MIN_ERROR:
-            weightsErrors = [np.zeros(layer.shape) for layer in self.weights] #Derivada de la función de coste de la red respecto de un peso [capa][neurona][peso]
-            biasesErrors = [np.zeros(layer.shape) for layer in self.biases] #Derivada de la función de coste de la red respecto de un bias [capa][neurona]
-            
-            for inputs, targets in train:
-                errors = [np.zeros(layer.shape) for layer in self.layers] #Error de la salida de una neurona en este test (antes de aplicar la función de activación)
-                self.setInputs(inputs)
-                self.calcOutputs() #Se calcula la salida de cada neurona
+            for batch in [train[i:i+BATCH_SIZE] for i in range(len(train))[::BATCH_SIZE]]:
+                weightsErrors = [np.zeros(layer.shape) for layer in self.weights] #Derivada de la función de coste de la red respecto de un peso [capa][neurona][peso]
+                biasesErrors = [np.zeros(layer.shape) for layer in self.biases] #Derivada de la función de coste de la red respecto de un bias [capa][neurona]
+                
+                for inputs, targets in batch:
+                    errors = [np.zeros(layer.shape) for layer in self.layers] #Error de la salida de una neurona en este test (antes de aplicar la función de activación)
+                    self.setInputs(inputs)
+                    self.calcOutputs() #Se calcula la salida de cada neurona
 
-                #Se calculan los errores de salidas, pesos y bias
-                errors[-1] = self.layers[-1] * (1 - self.layers[-1]) * (self.layers[-1] - targets)
-                for l in range(len(self.layers))[-2::-1]: #Se empieza por la penúltima capa hasta la primera (backpropagation)
-                    errors[l] = np.dot(errors[l+1], self.weights[l].transpose()) * self.layers[l] * (1-self.layers[l])
-                    biasesErrors[l+1] += errors[l+1] #El error de un bias coincide con el error de su neurona antes de aplicar la función de activación
-                    weightsErrors[l] += np.dot(self.layers[l].transpose(), errors[l+1])
+                    #Se calculan los errores de salidas, pesos y bias
+                    errors[-1] = self.layers[-1] * (1 - self.layers[-1]) * (self.layers[-1] - targets)
+                    for l in range(len(self.layers))[-2::-1]: #Se empieza por la penúltima capa hasta la primera (backpropagation)
+                        errors[l] = np.dot(errors[l+1], self.weights[l].transpose()) * self.layers[l] * (1-self.layers[l])
+                        biasesErrors[l+1] += errors[l+1] #El error de un bias coincide con el error de su neurona antes de aplicar la función de activación
+                        weightsErrors[l] += np.dot(self.layers[l].transpose(), errors[l+1])
 
-            #Se actualizan los pesos y bias según los errores calculados
-            for l in range(len(self.weights)):
-                self.weights[l] -= weightsErrors[l] * lr
-                self.biases[l+1] -= biasesErrors[l+1] * lr
+                #Se actualizan los pesos y bias según los errores calculados
+                for l in range(len(self.weights)):
+                    self.weights[l] -= weightsErrors[l] * lr
+                    self.biases[l+1] -= biasesErrors[l+1] * lr
 
             #Se evalúa la función de coste de la red con los nuevos pesos
             cost = 0.0
@@ -63,10 +65,12 @@ class Network:
             epochs += 1
             lr = float(open("LR", "rb").read())
             print "\nCost:\t", cost
-            print "Success:\t", success, " / ", len(tests)
+            print "Aciertos:", success, "/", len(tests)
             print "LR:\t", lr
             print "Iter:\t", epochs
 
     def setInputs(self, inputs): self.layers[0] = np.array([inputs])
     def getOutputs(self): return self.layers[-1]
 def sigmoid(x): return 1.0/(1.0+np.exp(-x))
+def relu(x): return np.maximum(x, 0)
+def drelu(x): return np.around(x)
