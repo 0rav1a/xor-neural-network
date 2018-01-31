@@ -51,5 +51,5 @@ for inputs, targets in test:
     if target != output:
         img = Image.new("P", (28,28))
         img.putdata([i*255 for i in inputs])
-        img.save('errores/' + str(net.getOutputs()) + ".png")
+        img.save('errores/' + str(np.around(net.getOutputs(), 1)) + ".png")
         errores[output] += 1
