@@ -3,6 +3,10 @@ from PIL import Image
 from Network import Network
 import numpy as np
 
+TRAINS = 60000
+TESTS = 10000
+SIZE = 784
+
 imgTrain = open("train-images-idx3-ubyte", "rb")
 imgTrain.read(16)
 lblTrain = open("train-labels-idx1-ubyte", "rb")
@@ -12,11 +16,29 @@ imgTest.read(16)
 lblTest = open("t10k-labels-idx1-ubyte", "rb")
 lblTest.read(8)
 
+print "Leyendo imágenes de entrenamiento"
+trainInputs = np.array(np.split(np.fromstring(imgTrain.read(TRAINS*SIZE), dtype="uint8")/255.0, TRAINS))
+print "Leyendo labels de entrenamiento"
+trainOutputs = np.zeros((TRAINS, 10))
+for i,y in enumerate(lblTrain.read(TRAINS)): trainOutputs[i][ord(y)] = 1
+print "Leyendo imágenes de test"
+testInputs = np.array(np.split(np.fromstring(imgTest.read(TESTS*SIZE), dtype="uint8")/255.0, TESTS))
+print "Leyendo labels de test"
+testOutputs = np.zeros((TESTS, 10))
+for i,y in enumerate(lblTest.read(TESTS)): testOutputs[i][ord(y)] = 1
+
+print "Entrenando"
+net = Network([784,30,10])
+net.train(trainInputs, trainOutputs, testInputs, testOutputs)
+print "Entrenada"
+
+
+'''
 train = []
 test = []
 
 print "Leyendo imagenes de entrenamiento"
-for _ in range(1000):
+for _ in range(60000):
     img = []
     for _ in range(784):
         img.append(ord(imgTrain.read(1))/255.0)
@@ -27,7 +49,7 @@ for _ in range(1000):
 train = np.array(train)
 
 print "Leyendo imagenes de test"
-for _ in range(1000):
+for _ in range(10000):
     img = []
     for _ in range(784):
         img.append(ord(imgTest.read(1))/255.0)
@@ -37,10 +59,6 @@ for _ in range(1000):
     test.append([img,lbl])
 test = np.array(test)
 
-print "Entrenando"
-net = Network([784,30,10])
-net.backprop(train, test)
-print "Entrenada"
 
 errores = [0,0,0,0,0,0,0,0,0,0]
 for inputs, targets in test:
@@ -53,3 +71,4 @@ for inputs, targets in test:
         img.putdata([i*255 for i in inputs])
         img.save('errores/' + str(np.around(net.getOutputs(), 1)) + ".png")
         errores[output] += 1
+'''
