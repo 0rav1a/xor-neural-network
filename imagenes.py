@@ -3,8 +3,8 @@ from PIL import Image
 from Network import Network
 import numpy as np
 
-TRAINS = 60000
-TESTS = 10000
+TRAINS = 10000
+TESTS = 1000
 SIZE = 784
 
 imgTrain = open("train-images-idx3-ubyte", "rb")
@@ -17,15 +17,15 @@ lblTest = open("t10k-labels-idx1-ubyte", "rb")
 lblTest.read(8)
 
 print "Leyendo imágenes de entrenamiento"
-trainInputs = np.array(np.split(np.fromstring(imgTrain.read(TRAINS*SIZE), dtype="uint8")/255.0, TRAINS))
+trainInputs = np.array(np.split(np.fromstring(imgTrain.read(TRAINS*SIZE), dtype="uint8")/255.0, TRAINS)).T
 print "Leyendo labels de entrenamiento"
-trainOutputs = np.zeros((TRAINS, 10))
-for i,y in enumerate(lblTrain.read(TRAINS)): trainOutputs[i][ord(y)] = 1
+trainOutputs = np.zeros((TRAINS, 10)).T
+for i,y in enumerate(lblTrain.read(TRAINS)): trainOutputs[ord(y)][i] = 1
 print "Leyendo imágenes de test"
-testInputs = np.array(np.split(np.fromstring(imgTest.read(TESTS*SIZE), dtype="uint8")/255.0, TESTS))
+testInputs = np.array(np.split(np.fromstring(imgTest.read(TESTS*SIZE), dtype="uint8")/255.0, TESTS)).T
 print "Leyendo labels de test"
-testOutputs = np.zeros((TESTS, 10))
-for i,y in enumerate(lblTest.read(TESTS)): testOutputs[i][ord(y)] = 1
+testOutputs = np.zeros((TESTS, 10)).T
+for i,y in enumerate(lblTest.read(TESTS)): testOutputs[ord(y)][i] = 1
 
 print "Entrenando"
 net = Network([784,30,10])
