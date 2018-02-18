@@ -3,8 +3,8 @@ from PIL import Image
 from Network import Network
 import numpy as np
 
-TRAINS = 10000
-TESTS = 1000
+TRAINS = 60000
+TESTS = 10000
 SIZE = 784
 
 imgTrain = open("train-images-idx3-ubyte", "rb")
@@ -62,8 +62,7 @@ test = np.array(test)
 
 errores = [0,0,0,0,0,0,0,0,0,0]
 for inputs, targets in test:
-    net.setInputs(inputs)
-    net.calcOutputs()
+    net.calcOutputs(inputs)
     target = np.argmax(targets)
     output = np.argmax(net.getOutputs())
     if target != output:
