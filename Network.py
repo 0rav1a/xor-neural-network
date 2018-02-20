@@ -37,23 +37,18 @@ class Network:
     def train(self, trainInputs, trainOutputs, testInputs, testOutputs):
         '''
         Dada una lista de tests, se modifican los pesos y bias de todas las neuronas para que la salida se asemeje a la esperada
-        trainInputs: Lista de entradas para entrenar la red [neurona][test]
-        trainOutputs: Lista de salidas correspondientes [neurona][test] (misma longitud que trainInputs)
-        testInputs: Lista de entradas para comprobar el funcionamiento la red [neurona][test]
-        testOutputs: Lista de salidas correspondientes [neurona][test] (misma longitud que testInputs)
+        trainInputs: Lista de entradas para entrenar la red [test][neurona]
+        trainOutpus: Lista de salidas esperadas para entrenar la red [test][neurona]
+        testInputs: Lista de entradas para evaluar la red [test][neurona]
+        testOutputs: Lista de salidas esperadas para evaluar la red [test][neurona]
         '''
         epochs = 0
         cost = 1.0 #Valor de la función de coste para los pesos y bias actuales
-        n_batches = len(trainInputs[0])/BATCH_SIZE
+        n_batches = len(trainInputs)/BATCH_SIZE
         
-        trainInputs = trainInputs.T
-        trainOutputs = trainOutputs.T
-        testInputs = testInputs.T
-        testOutputs = testOutputs.T
-
         while cost > MIN_ERROR:
             t = time.time()
-            for inputs, targets in zip(np.split(trainInputs, n_batches, axis=0), np.split(trainOutputs, n_batches, axis=0)):
+            for inputs, targets in zip(np.split(trainInputs, n_batches), np.split(trainOutputs, n_batches)):
                 self.calcOutputs(inputs) #Se calcula la salida de cada neurona
                 self.calcErrors(targets) #Se calculan los errores de cada neurona
                 

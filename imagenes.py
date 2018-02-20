@@ -1,14 +1,13 @@
 #coding:utf-8
-from PIL import Image
-from Network import Network
+import Network as net
 import numpy as np
 
-TRAINS = 60000
-TESTS = 10000
+TRAINS = 60000 #Cantidad de tests para entrenar la red
+TESTS = 10000 #Cantidad de tests para evaluar la red
 SIZE = 784
 
 imgTrain = open("train-images-idx3-ubyte", "rb")
-imgTrain.read(16)
+imgTrain.read(16) #Offset
 lblTrain = open("train-labels-idx1-ubyte", "rb")
 lblTrain.read(8)
 imgTest = open("t10k-images-idx3-ubyte", "rb")
@@ -17,18 +16,19 @@ lblTest = open("t10k-labels-idx1-ubyte", "rb")
 lblTest.read(8)
 
 print "Leyendo imágenes de entrenamiento"
-trainInputs = np.array(np.split(np.fromstring(imgTrain.read(TRAINS*SIZE), dtype="uint8")/255.0, TRAINS)).T
-print "Leyendo labels de entrenamiento"
-trainOutputs = np.zeros((TRAINS, 10)).T
-for i,y in enumerate(lblTrain.read(TRAINS)): trainOutputs[ord(y)][i] = 1
+trainInputs = np.split(np.fromfile(imgTrain, "uint8", TRAINS*SIZE)/255.0, TRAINS)
+trainInputs = np.array(trainInputs) #Esto es lento. Estaría guay quitarlo
+trainOutputs = np.zeros((TRAINS, 10))
+trainOutputs[range(TRAINS), np.fromfile(lblTrain, "uint8", TRAINS)] = 1
+
 print "Leyendo imágenes de test"
-testInputs = np.array(np.split(np.fromstring(imgTest.read(TESTS*SIZE), dtype="uint8")/255.0, TESTS)).T
-print "Leyendo labels de test"
-testOutputs = np.zeros((TESTS, 10)).T
-for i,y in enumerate(lblTest.read(TESTS)): testOutputs[ord(y)][i] = 1
+testInputs = np.split(np.fromfile(imgTest, "uint8", TESTS*SIZE)/255.0, TESTS)
+testInputs = np.array(testInputs)
+testOutputs = np.zeros((TESTS, 10))
+testOutputs[range(TESTS), np.fromfile(lblTest, "uint8", TESTS)] = 1
 
 print "Entrenando"
-net = Network([784,30,10])
+net = net.Network([784,30,10])
 net.train(trainInputs, trainOutputs, testInputs, testOutputs)
 print "Entrenada"
 
