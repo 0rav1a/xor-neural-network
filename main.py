@@ -10,13 +10,13 @@ TRAINS = 60000 #Cantidad de tests para entrenar la red
 TESTS = 10000 #Cantidad de tests para evaluar la red
 SIZE = 784
 
-imgTrain = open("train-images-idx3-ubyte", "rb")
+imgTrain = open("mnist/train-images-idx3-ubyte", "rb")
 imgTrain.read(16) #Offset
-lblTrain = open("train-labels-idx1-ubyte", "rb")
+lblTrain = open("mnist/train-labels-idx1-ubyte", "rb")
 lblTrain.read(8)
-imgTest = open("t10k-images-idx3-ubyte", "rb")
+imgTest = open("mnist/t10k-images-idx3-ubyte", "rb")
 imgTest.read(16)
-lblTest = open("t10k-labels-idx1-ubyte", "rb")
+lblTest = open("mnist/t10k-labels-idx1-ubyte", "rb")
 lblTest.read(8)
 
 print "Leyendo imágenes de entrenamiento"
